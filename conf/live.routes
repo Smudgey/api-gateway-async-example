@@ -1,0 +1,8 @@
+
+GET     /api/async/start                uk.gov.hmrc.apigatewayexample.controllers.LiveExampleAsyncController.start()
+
+GET     /api/async/exampleapi           uk.gov.hmrc.apigatewayexample.controllers.LiveExampleAsyncController.exampleapi(testId:String, journeyId: Option[String])
+
+GET     /api/async/poll                 uk.gov.hmrc.apigatewayexample.controllers.LiveExampleAsyncController.poll(journeyId: Option[String])
+
+GET     /notaskrunning                  uk.gov.hmrc.apigatewayexample.controllers.LiveExampleAsyncController.noTaskRunning

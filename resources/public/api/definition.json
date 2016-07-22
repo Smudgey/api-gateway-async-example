@@ -1,0 +1,57 @@
+{
+  "scopes":[
+    {
+      "key":"write:async-example",
+      "name":"Async Example",
+      "description":"Demonstrate the use of the play-async framework in a micro-service"
+    }
+  ],
+  "api":{
+    "name":"Async Example",
+    "description":"Async example API's.",
+    "context":"async-example",
+    "requiresTrust": true,
+    "versions":[
+      {
+        "version":"1.0",
+        "status":"PUBLISHED",
+        "endpoints":[
+          {
+            "uriPattern":"/api/async/Start",
+            "endpointName":"Start",
+            "method":"POST",
+            "authType":"USER",
+            "throttlingTier":"UNLIMITED",
+            "scope":"write:async-example"
+          },
+          {
+            "uriPattern":"/api/async/exapleapi",
+            "endpointName":"Example async service",
+            "method":"GET",
+            "authType":"USER",
+            "throttlingTier":"UNLIMITED",
+            "scope":"write:async-example",
+            "queryParameters": [
+              {
+                "name": "taskId",
+                "required": true
+              },
+              {
+                "name": "journeyId",
+                "required": false
+              }
+            ]
+          },
+          {
+            "uriPattern":"/api/async/poll",
+            "endpointName":"Example poll request for running async task",
+            "method":"GET",
+            "authType":"USER",
+            "throttlingTier":"UNLIMITED",
+            "scope":"write:async-example"
+          }
+        ]
+      }
+    ]
+  }
+}
