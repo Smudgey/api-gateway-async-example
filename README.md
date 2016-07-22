@@ -3,11 +3,11 @@
 
 [![Build Status](https://travis-ci.org/hmrc/api-gateway-async-example.svg?branch=master)](https://travis-ci.org/hmrc/api-gateway-async-example) [ ![Download](https://api.bintray.com/packages/hmrc/releases/api-gateway-async-example/images/download.svg) ](https://bintray.com/hmrc/releases/api-gateway-async-example/_latestVersion)
 
-Example micro-service which demonstrates how an asynchronous API Gateway services can be exposed to a client.
+Example micro-service which demonstrates how an asynchronous API Gateway service can be exposed to a client.
 
-The term asynchronous means the client never blocks for a response to the API gateway service call. The client first makes a request to an async API service which submits the requested task for processing off-line, and then makes polling API requests (every 3-4 seconds) to validate if the off-line task has completed. This means short lived socket connections and no read delays with the client.
+The term asynchronous means the client never blocks for a response to the API gateway service call. The client first makes a request to an async API service which submits the requested task for processing off-line, and the client then makes polling API requests (every 3-4 seconds) to validate if the off-line task has completed. This means short lived socket connections and no read delays with the client. Which results in short lived API gateway connections.
 
-In order to reduce a number fine grained services exposed to clients, the async service approach provides the ability for defining course grained long running services.
+In order to reduce a number fine grained services exposed to clients, the micro-service async library provides the ability for defining course grained long running services.
 
 Please see the following links
 
@@ -20,7 +20,7 @@ Please see the following links
 
 In order for a micro-service to utilize the async framework, the following integration is required.
 
-1.  An encrypted session cookie is used to hold state concerning the async task and the identity of the client. The encrypted session is required so the client knows nothing about the
+1.  An encrypted session cookie is used to hold state concerning the async task and the identity of the client. The encrypted session is required since the client must know nothing about the
     identifier which represents the off-line task. Since users can login with the same credentials on different mobile devices, a unique identifier is required which cannot be based on any
     default HTTP headers which are supplied by the API Gateway or from the users Authority record.
 
@@ -64,7 +64,7 @@ In order for a micro-service to utilize the async framework, the following integ
   }
 ```
 
-The client is also required to implement the abstract play-async functions which include a number of callback functions to drive the async nature of the framework, since the micro-service is in control of the responses which are sent to the client. 
+The client is also required to implement the abstract play-async functions which include a number of callback functions to drive the async nature of the framework, since the micro-service is in control of the responses which are sent to the client. The example controller above demonstrates the callbacks. 
 
 
 
@@ -80,9 +80,9 @@ Please note it is mandatory to supply an Accept HTTP header to all below service
 
 | *Task* | *Supported Methods* | *Description* |
 |--------|----|----|
-| ```/api/async/start``` | GET | Return 200 response along with an encrypted cookie. The cookie is used to identify the client when making async requests. [More...](docs/startup.md)  |
-| ```/api/async/exampleape?taskId=somevalue``` | GET | Request to execute an async request The cookie returned from start must be supplied. [More...](docs/exampleapi.md)  |
-| ```/api/async/poll``` | GET | Poll request to check if the background task (invoked from /api/async/exampleapi) has completed. The cookie from exampleapi service must be supplied. [More...](docs/poll.md)  |
+| ```/api/async/start``` | GET | Return 200 response along with an encrypted cookie. The cookie is used to identify the client when making async requests. [More...](docs/start.md)  |
+| ```/api/async/exampleape?taskId=somevalue``` | GET | Request to execute a long running task off-line. The cookie returned from start must be supplied to this service call. [More...](docs/exampleapi.md)  |
+| ```/api/async/poll``` | GET | Poll request to check if the background task (invoked from /api/async/exampleapi) has completed. The cookie returned from the exampleapi service must be supplied. [More...](docs/poll.md)  |
 
 
 ## Definition
