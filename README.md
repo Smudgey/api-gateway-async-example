@@ -7,15 +7,15 @@ Example micro-service which demonstrates how an asynchronous API Gateway service
 
 The term asynchronous means the client never blocks for a response to the API gateway service call. The client first makes a request to an async API service which submits the requested task for processing off-line, and the client then makes polling API requests (every 3-4 seconds) to validate if the off-line task has completed. This means short lived socket connections and no read delays with the client. Which results in short lived API gateway connections.
 
-In order to reduce a number fine grained services exposed to clients, the micro-service async library provides the ability for defining course grained long running services.
+In order to reduce the number of fine grained services exposed to clients, the micro-service async library provides the ability for defining course grained long running services.
 
 Please see the following links
 
 1. play-async library overview - <https://github.com/hmrc/play-async/blob/master/README.md> This library forms the foundactions of the async library.
-2. microservice-async library overrview - <https://github.com/hmrc/microservice-async/blob/master/README.md> This library encapsulates the generic parts of the microservice async library in order to remove code duplication for common components.
+2. microservice-async library overrview - <https://github.com/hmrc/microservice-async/blob/master/README.md> This library encapsulates the generic parts of the micro-service async library in order to remove code duplication for common components.
 
 
-##Code Snippets
+##Example 
 
 
 In order for a micro-service to utilize the async framework, the following integration is required.
@@ -52,7 +52,7 @@ In order for a micro-service to utilize the async framework, the following integ
             asyncWrapper(callbackWithStatus) {
               hc =>
 
-                // YOUR ASYNC CODE!!! Just wraper with asyncWrapper and the below code along with the header carrier will be processed off-line.
+                // YOUR ASYNC CODE!!! Wrap with asyncWrapper and the below code along with the header carrier will be processed off-line.
 
                 // Build a response with the value that was supplied to the action.
                 val response = AsyncResponse(Json.toJson(ExampleAsyncResponse("some name", testId)))
