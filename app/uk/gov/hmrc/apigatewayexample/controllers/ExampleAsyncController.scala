@@ -146,7 +146,7 @@ object LiveExampleAsyncController extends ExampleAsyncController {
 
   override def taskCache: Cache[TaskCache] = new Cache[TaskCache] {
 
-    val expire = 90000L // Note: The expire time must be greater than the client timeout.
+    val expire = 900000L // Note: The expire time must be greater than the client timeout.
 
     override def put(id: String, value: TaskCache)(implicit hc: HeaderCarrier): Future[Unit] = {
       repository.save(value, expire).map(_ => ())
