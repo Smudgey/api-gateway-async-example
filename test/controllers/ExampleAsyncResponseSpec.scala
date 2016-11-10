@@ -16,18 +16,21 @@
 
 package controllers
 
+import akka.stream.Materializer
 import org.scalatest.concurrent.PatienceConfiguration.{Interval, Timeout}
 import org.scalatest.concurrent.{Eventually, ScalaFutures}
 import org.scalatest.time.{Milliseconds, Seconds, Span}
+import play.api.Play
+import play.api.Play.current
 import play.api.libs.json.Json
 import play.api.mvc.{AnyContent, Request, Result}
-import play.api.test.{FakeRequest, FakeApplication}
-import uk.gov.hmrc.apigatewayexample.controllers.{LiveExampleAsyncController, ExampleAsyncResponse, ExampleAsyncController}
+import play.api.test.{FakeApplication, FakeRequest}
+import uk.gov.hmrc.apigatewayexample.controllers.{ExampleAsyncController, ExampleAsyncResponse, LiveExampleAsyncController}
 import uk.gov.hmrc.play.asyncmvc.async.TimedEvent
 import uk.gov.hmrc.play.asyncmvc.model.AsyncMvcSession
 import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
-import scala.concurrent.ExecutionContext.Implicits.global
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 
@@ -54,6 +57,7 @@ class ExampleAsyncResponseSpec extends UnitSpec with WithFakeApplication with St
     }
 
     "return throttle status when the throttle limit has been reached" in new Throttle {
+      implicit def mat: Materializer = Play.materializer
       val result2: Result = await(controller.exampleapi("id")(requestWithSessionKeyAndAcceptHeader))
       status(result2) shouldBe 200
       bodyOf(result2) shouldBe "THROTTLE EXCEEDED"
@@ -124,7 +128,7 @@ class ExampleAsyncResponseSpec extends UnitSpec with WithFakeApplication with St
 
   }
 
-  def invokeTestNonBlockAction(controller:ExampleAsyncController, testSessionId:String, response:String)(implicit request:Request[AnyContent]) = {
+  def invokeTestNonBlockAction(controller:ExampleAsyncController, testSessionId:String, response:String)(implicit request:Request[AnyContent], mat: Materializer = Play.materializer) = {
     // Session object holds the key of the task being executed which is used in the poll request.
     val requestWithSessionKeyAndId = FakeRequest().withSession(
       controller.AsyncMVCSessionId -> controller.buildSession(controller.id,testSessionId),

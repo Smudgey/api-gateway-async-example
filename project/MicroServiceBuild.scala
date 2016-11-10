@@ -2,38 +2,35 @@ import sbt._
 import uk.gov.hmrc.SbtAutoBuildPlugin
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin
 import uk.gov.hmrc.versioning.SbtGitVersioning
-
+import play.sbt.PlayImport._
 
 object MicroServiceBuild extends Build with MicroService {
-
-  import play.PlayImport.PlayKeys._
+  import play.sbt.routes.RoutesKeys._
 
   val appName = "api-gateway-async-example"
-
-  override lazy val plugins: Seq[Plugins] = Seq(
-    SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin
-  )
 
   override lazy val appDependencies: Seq[ModuleID] = AppDependencies()
   override lazy val playSettings : Seq[Setting[_]] = Seq(routesImport ++= Seq("uk.gov.hmrc.apigatewayexample.binder.Binders._"))
 }
 
 private object AppDependencies {
-  import play.PlayImport._
+  import play.sbt.PlayImport._
   import play.core.PlayVersion
 
-  private val scalaTestVersion = "2.2.6"
+  private val microserviceBootstrapVersion = "5.7.0"
+  private val playAuthVersion = "4.2.0"
+  private val playHealthVersion = "2.0.0"
+  private val playJsonLoggerVersion = "3.0.0"
+  private val playUrlBindersVersion = "2.0.0"
+  private val playConfigVersion = "3.0.0"
+  private val domainVersion = "4.0.0"
+  private val playHmrcApiVersion = "1.2.0"
+  private val hmrcTestVersion = "2.0.0"
   private val pegdownVersion = "1.6.0"
-  private val microserviceBootstrapVersion = "4.2.1"
-  private val playAuthVersion = "3.1.0"
-  private val playHealthVersion = "1.1.0"
-  private val playJsonLoggerVersion = "2.1.1"
-  private val playUrlBindersVersion = "1.0.0"
-  private val playConfigVersion = "2.0.1"
-  private val domainVersion = "3.7.0"
-  private val hmrcTestVersion = "1.7.0"
-  private val playHmrcApiVersion = "0.5.0"
-  private val microserviceAsync = "0.2.0"
+  private val scalaTestVersion = "2.2.6"
+  private val wireMockVersion = "2.2.2"
+  private val cucumberVersion = "1.2.5"
+  private val microserviceAsync = "1.0.0"
 
   val compile = Seq(
     ws,
