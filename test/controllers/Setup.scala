@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 HM Revenue & Customs
+ * Copyright 2017 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,23 +18,24 @@ package controllers
 
 import java.util.UUID
 
-import akka.actor.{Props, ActorRef}
+import akka.actor.{ActorRef, Props}
+import play.api.Play.current
 import play.api.libs.concurrent.Akka
-import play.api.libs.json.{JsValue}
+import play.api.libs.json.JsValue
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import reactivemongo.bson.BSONObjectID
-import uk.gov.hmrc.msasync.repository.{AsyncRepository, TaskCachePersist}
-import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.mongo.{DatabaseUpdate, Saved}
-import uk.gov.hmrc.play.asyncmvc.async.Cache
-import uk.gov.hmrc.play.asyncmvc.model.TaskCache
-import uk.gov.hmrc.play.auth.microservice.connectors.ConfidenceLevel
-import uk.gov.hmrc.play.http.{HeaderCarrier, HttpGet, Upstream4xxResponse}
 import uk.gov.hmrc.apigatewayexample.connectors.{AuthConnector, Authority}
 import uk.gov.hmrc.apigatewayexample.controllers.ExampleAsyncController
 import uk.gov.hmrc.apigatewayexample.controllers.action.{AccountAccessControl, AccountAccessControlCheckAccessOff, AccountAccessControlWithHeaderCheck}
-import play.api.Play.current
+import uk.gov.hmrc.domain.Nino
+import uk.gov.hmrc.http.{CoreGet, HeaderCarrier, Upstream4xxResponse}
+import uk.gov.hmrc.mongo.{DatabaseUpdate, Saved}
+import uk.gov.hmrc.msasync.repository.{AsyncRepository, TaskCachePersist}
+import uk.gov.hmrc.play.asyncmvc.async.Cache
+import uk.gov.hmrc.play.asyncmvc.model.TaskCache
+import uk.gov.hmrc.play.auth.microservice.connectors.ConfidenceLevel
+
 import scala.concurrent.{ExecutionContext, Future}
 
 
@@ -43,7 +44,7 @@ class TestAuthConnector(nino: Option[Nino]) extends AuthConnector {
 
   override def serviceConfidenceLevel: ConfidenceLevel = ???
 
-  override def http: HttpGet = ???
+  override def http: CoreGet = ???
 
   override def grantAccess()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Authority] = Future(Authority(nino.get, ConfidenceLevel.L200, "authId"))
 }

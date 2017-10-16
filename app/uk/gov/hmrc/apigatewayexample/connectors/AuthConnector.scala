@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 HM Revenue & Customs
+ * Copyright 2017 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,17 +18,17 @@ package uk.gov.hmrc.apigatewayexample.connectors
 
 import play.api.Play
 import play.api.libs.json.JsValue
-import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.play.http.{ForbiddenException, HeaderCarrier, HttpGet}
 import uk.gov.hmrc.apigatewayexample.config.WSHttp
 import uk.gov.hmrc.domain.Nino
+import uk.gov.hmrc.http.{CoreGet, ForbiddenException, HeaderCarrier}
 import uk.gov.hmrc.play.auth.microservice.connectors.ConfidenceLevel
+import uk.gov.hmrc.play.config.ServicesConfig
 
 import scala.concurrent.{ExecutionContext, Future}
 
 
-class NinoNotFoundOnAccount(message:String) extends uk.gov.hmrc.play.http.HttpException(message, 401)
-class AccountWithLowCL(message:String) extends uk.gov.hmrc.play.http.HttpException(message, 401)
+class NinoNotFoundOnAccount(message:String) extends uk.gov.hmrc.http.HttpException(message, 401)
+class AccountWithLowCL(message:String) extends uk.gov.hmrc.http.HttpException(message, 401)
 
 case class Authority(nino:Nino, cl:ConfidenceLevel, authId:String)
 
@@ -36,7 +36,7 @@ trait AuthConnector {
 
   val serviceUrl: String
 
-  def http: HttpGet
+  def http: CoreGet
 
   def serviceConfidenceLevel: ConfidenceLevel
 

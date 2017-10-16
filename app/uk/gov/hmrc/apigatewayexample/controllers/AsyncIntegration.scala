@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 HM Revenue & Customs
+ * Copyright 2017 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,12 @@
 
 package uk.gov.hmrc.apigatewayexample.controllers
 
-import akka.actor.{Props, ActorRef}
+import akka.actor.{ActorRef, Props}
+import play.api.Play.current
 import play.api.libs.concurrent.Akka
 import play.api.libs.json.{JsValue, Json}
-import play.api.mvc.{Call, AnyContent, Request, Controller}
-import uk.gov.hmrc.play.asyncmvc.async.{AsyncPaths, AsyncMVC}
-
-import play.api.Play.current
+import play.api.mvc.{AnyContent, Call, Controller, Request}
+import uk.gov.hmrc.play.asyncmvc.async.{AsyncMVC, AsyncPaths}
 
 case class AsyncResponse(value:JsValue)
 object AsyncResponse {

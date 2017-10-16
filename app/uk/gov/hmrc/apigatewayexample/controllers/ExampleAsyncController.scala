@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 HM Revenue & Customs
+ * Copyright 2017 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,16 @@
 
 package uk.gov.hmrc.apigatewayexample.controllers
 
-import uk.gov.hmrc.msasync.repository.AsyncRepository
-import uk.gov.hmrc.apigatewayexample.controllers.action.AccountAccessControlWithHeaderCheck
 import play.api.libs.json.Json
 import play.api.mvc._
-import uk.gov.hmrc.play.asyncmvc.async.{TimedEvent, Cache}
-import uk.gov.hmrc.play.asyncmvc.model.{ViewCodes, TaskCache}
-import uk.gov.hmrc.play.http.HeaderCarrier
-import uk.gov.hmrc.play.microservice.controller.BaseController
 import uk.gov.hmrc.api.controllers._
+import uk.gov.hmrc.apigatewayexample.controllers.action.AccountAccessControlWithHeaderCheck
+import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.msasync.repository.AsyncRepository
+import uk.gov.hmrc.play.HeaderCarrierConverter
+import uk.gov.hmrc.play.asyncmvc.async.{Cache, TimedEvent}
+import uk.gov.hmrc.play.asyncmvc.model.{TaskCache, ViewCodes}
+import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -54,7 +55,7 @@ trait ExampleAsyncController extends BaseController with HeaderValidator with Er
   // exists before an async task can be executed offline.
   final def exampleapi(testId:String, journeyId: Option[String] = None) = accessControl.validateAccept(acceptHeaderValidationRules).async {
     implicit authenticated =>
-      implicit val hc = HeaderCarrier.fromHeadersAndSession(authenticated.request.headers, None)
+      implicit val hc = HeaderCarrierConverter.fromHeadersAndSession(authenticated.request.headers, None)
       implicit val req = authenticated.request
 
       withAsyncSession {
@@ -123,7 +124,7 @@ trait ExampleAsyncController extends BaseController with HeaderValidator with Er
     implicit authenticated =>
 
       withAsyncSession {
-        implicit val hc = HeaderCarrier.fromHeadersAndSession(authenticated.request.headers, None)
+        implicit val hc = HeaderCarrierConverter.fromHeadersAndSession(authenticated.request.headers, None)
         implicit val req = authenticated.request
 
         val response = pollTask(Call("GET", "/notaskrunning"), callbackWithSuccessResponse, callbackWithStatus)
@@ -161,5 +162,3 @@ object LiveExampleAsyncController extends ExampleAsyncController {
   }
 
 }
-
-
