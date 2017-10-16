@@ -41,7 +41,7 @@ In order for a micro-service to utilize the async framework, the following integ
   // exists before an async task can be executed offline.
   final def exampleapi(testId:String, journeyId: Option[String] = None) = accessControl.validateAccept(acceptHeaderValidationRules).async {
     implicit authenticated =>
-      implicit val hc = HeaderCarrier.fromHeadersAndSession(authenticated.request.headers, None)
+      implicit val hc = HeaderCarrierConverter.fromHeadersAndSession(authenticated.request.headers, None)
       implicit val req = authenticated.request
       withAsyncSession {
         // Do not allow more than one task to be executing - if task running then poll page will be returned.

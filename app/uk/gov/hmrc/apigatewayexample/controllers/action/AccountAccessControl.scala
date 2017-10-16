@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 HM Revenue & Customs
+ * Copyright 2017 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,17 @@
 
 package uk.gov.hmrc.apigatewayexample.controllers.action
 
+import com.typesafe.config.Config
 import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc._
-import uk.gov.hmrc.api.controllers.{ErrorUnauthorized, ErrorUnauthorizedLowCL, ErrorAcceptHeaderInvalid, HeaderValidator}
+import uk.gov.hmrc.api.controllers.{ErrorAcceptHeaderInvalid, ErrorUnauthorized, ErrorUnauthorizedLowCL, HeaderValidator}
+import uk.gov.hmrc.apigatewayexample.connectors.{AccountWithLowCL, AuthConnector, Authority, NinoNotFoundOnAccount}
+import uk.gov.hmrc.apigatewayexample.controllers.{ErrorUnauthorizedNoNino, ForbiddenAccess}
+import uk.gov.hmrc.http.hooks.HttpHook
+import uk.gov.hmrc.http.{Request => _, _}
+import uk.gov.hmrc.play.HeaderCarrierConverter
 import uk.gov.hmrc.play.auth.microservice.connectors.ConfidenceLevel
-import uk.gov.hmrc.play.http._
-import uk.gov.hmrc.play.http.hooks.HttpHook
-import uk.gov.hmrc.apigatewayexample.connectors.{AccountWithLowCL, NinoNotFoundOnAccount, AuthConnector, Authority}
-import uk.gov.hmrc.apigatewayexample.controllers.{ForbiddenAccess, ErrorUnauthorizedNoNino}
 
 import scala.concurrent.Future
 
@@ -38,14 +40,14 @@ trait AccountAccessControl extends ActionBuilder[AuthenticatedRequest] with Resu
   val authConnector: AuthConnector
 
   def invokeBlock[A](request: Request[A], block: AuthenticatedRequest[A] => Future[Result]) = {
-    implicit val hc = HeaderCarrier.fromHeadersAndSession(request.headers, None)
+    implicit val hc = HeaderCarrierConverter.fromHeadersAndSession(request.headers, None)
 
     authConnector.grantAccess().flatMap {
       authority => {
         block(AuthenticatedRequest(Some(authority),request))
       }
     }.recover {
-      case ex:uk.gov.hmrc.play.http.Upstream4xxResponse => Unauthorized(Json.toJson(ErrorUnauthorized))
+      case ex:uk.gov.hmrc.http.Upstream4xxResponse => Unauthorized(Json.toJson(ErrorUnauthorized))
 
       case ex:ForbiddenException =>
         Logger.info("Unauthorized! ForbiddenException caught and returning 403 status!")
@@ -97,9 +99,10 @@ object AccountAccessControlSandbox extends AccountAccessControl {
 
       override def serviceConfidenceLevel: ConfidenceLevel = ConfidenceLevel.L0
 
-      override def http: HttpGet = new HttpGet {
-        override protected def doGet(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = Future.failed(new IllegalArgumentException("Sandbox mode!"))
+      override def http: CoreGet = new CoreGet with HttpGet {
+        override def doGet(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = Future.failed(new IllegalArgumentException("Sandbox mode!"))
         override val hooks: Seq[HttpHook] = NoneRequired
+        override def configuration: Option[Config] = None
       }
     }
 }
@@ -109,4 +112,3 @@ object AccountAccessControlCheckAccessOff extends AccountAccessControlWithHeader
 
   val accessControl: AccountAccessControl = AccountAccessControlSandbox
 }
-

@@ -29,7 +29,9 @@ trait MicroService {
     .settings(defaultSettings(): _*)
     .settings(staticCompileResourceSettings)
     .settings(
+      scalaVersion := "2.11.11",
       libraryDependencies ++= appDependencies,
+      crossScalaVersions := Seq("2.11.11"),
       retrieveManaged := true,
       evictionWarningOptions in update := EvictionWarningOptions.default.withWarnScalaVersionEviction(false),
       routesGenerator := StaticRoutesGenerator
