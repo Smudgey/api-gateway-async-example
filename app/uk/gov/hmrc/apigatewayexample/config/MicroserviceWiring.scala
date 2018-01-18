@@ -37,9 +37,6 @@ trait WSHttp extends HttpGet with WSGet with HttpPut with WSPut with HttpPost wi
 object WSHttp extends WSHttp
 
 object MicroserviceAuthConnector extends PlayAuthConnector with ServicesConfig{
-  //extends AuthConnector with ServicesConfig with WSHttp {
   override lazy val serviceUrl = baseUrl("auth")
   override def http = WSHttp
-//  override protected def mode = environment.mode
-//  override val authBaseUrl: String = baseUrl("auth")
 }

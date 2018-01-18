@@ -37,16 +37,6 @@ import uk.gov.hmrc.play.auth.microservice.connectors.ConfidenceLevel.L200
 
 import scala.concurrent.{ExecutionContext, Future}
 
-//class TestAuthConnector(nino: Option[Nino]) extends AuthConnector {
-//  override val serviceUrl: String = "someUrl"
-//
-//  override def serviceConfidenceLevel: ConfidenceLevel = ???
-//
-//  override def http: CoreGet = ???
-//
-//  override def grantAccess()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Authority] = Future(Authority(nino.get, L200, "authId"))
-//}
-
 class TestRepository extends AsyncRepository {
   override def save(task: TaskCache, expire:Long): Future[DatabaseUpdate[TaskCachePersist]] = Future.successful(DatabaseUpdate(null, Saved(TaskCachePersist(BSONObjectID.generate, task))))
 
@@ -55,9 +45,7 @@ class TestRepository extends AsyncRepository {
   override def removeById(id: String): Future[Unit] = Future.successful({})
 }
 
-//class TestAccessCheck(testAuthConnector: TestAuthConnector) extends AccountAccessControl {
 class TestAccessCheck(nino: Option[Nino]) extends AccountAccessControl {
-//  override val authConnector: AuthConnector = testAuthConnector
   override def grantAccess()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Authority] = Future(Authority(nino.get, L200))
 }
 
@@ -86,7 +74,6 @@ trait Setup {
   ).withHeaders("Accept" -> "application/vnd.hmrc.1.0+json")
 
 
-//  val authConnector = new TestAuthConnector(Some(nino))
   val testRepository = new TestRepository
   val testAccess = new TestAccessCheck(Some(nino))
   val testCompositeAction = new TestAccountAccessControlWithAccept(testAccess)
@@ -189,14 +176,10 @@ trait SetupConcurrencyDynamicBlocking extends Setup {
 }
 
 trait AuthWithoutNino extends Setup {
-
-//  override val authConnector =  new TestAuthConnector(None) {
-//    override def grantAccess()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Authority] = Future.failed(new Upstream4xxResponse("Error", 401, 401))
-//  }
-
   override val testAccess = new TestAccessCheck(None){
     override def grantAccess()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Authority] = Future.failed(new Upstream4xxResponse("Error", 401, 401))
   }
+
   override val testCompositeAction = new TestAccountAccessControlWithAccept(testAccess)
 
   val controller = new ExampleAsyncController {

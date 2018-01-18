@@ -21,22 +21,24 @@ import play.api.libs.json.Json.toJson
 import play.api.mvc._
 import uk.gov.hmrc.api.controllers.{ErrorAcceptHeaderInvalid, ErrorUnauthorized, ErrorUnauthorizedLowCL, HeaderValidator}
 import uk.gov.hmrc.apigatewayexample.config.MicroserviceAuthConnector
-import uk.gov.hmrc.apigatewayexample.connectors.{AccountWithLowCL, NinoNotFoundOnAccount}
 import uk.gov.hmrc.apigatewayexample.controllers.{ErrorUnauthorizedNoNino, ForbiddenAccess}
 import uk.gov.hmrc.auth.core.retrieve.Retrievals._
 import uk.gov.hmrc.auth.core.retrieve.~
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.http.{Request => _, _}
+import uk.gov.hmrc.http.{HttpException, Request => _, _}
 import uk.gov.hmrc.play.HeaderCarrierConverter.fromHeadersAndSession
 import uk.gov.hmrc.play.auth.microservice.connectors.ConfidenceLevel
+import uk.gov.hmrc.play.auth.microservice.connectors.ConfidenceLevel.fromInt
 
 import scala.concurrent.{ExecutionContext, Future}
-
 
 case class AuthenticatedRequest[A](authority: Option[Authority], request: Request[A]) extends WrappedRequest(request)
 
 case class Authority(nino:Nino, cl:ConfidenceLevel)
+
+class NinoNotFoundOnAccount(message:String) extends HttpException(message, 401)
+class AccountWithLowCL(message:String) extends HttpException(message, 401)
 
 trait AccountAccessControl extends ActionBuilder[AuthenticatedRequest] with Results with AuthorisedFunctions{
 
@@ -49,7 +51,6 @@ trait AccountAccessControl extends ActionBuilder[AuthenticatedRequest] with Resu
   def invokeBlock[A](request: Request[A], block: AuthenticatedRequest[A] => Future[Result]) = {
     implicit val hc = fromHeadersAndSession(request.headers, None)
 
-    //authConnector.grantAccess().flatMap {
     grantAccess().flatMap {
       authority => {
         block(AuthenticatedRequest(Some(authority),request))
@@ -76,7 +77,7 @@ trait AccountAccessControl extends ActionBuilder[AuthenticatedRequest] with Resu
       .retrieve(nino and confidenceLevel) {
         case Some(foundNino) ~ foundConfidenceLevel ⇒ {
           if (foundNino.isEmpty) throw ninoNotFoundOnAccount
-          Future(Authority(Nino(foundNino), ConfidenceLevel.fromInt(foundConfidenceLevel.level)))
+          Future(Authority(Nino(foundNino), fromInt(foundConfidenceLevel.level)))
         }
         case None ~ _ ⇒ {
           throw ninoNotFoundOnAccount
@@ -102,34 +103,15 @@ trait AccountAccessControlWithHeaderCheck extends HeaderValidator {
   }
 }
 
-object Auth {
-  val authConnector: AuthConnector = MicroserviceAuthConnector
-}
-
 object AccountAccessControl extends AccountAccessControl {
-  //val authConnector: AuthConnector = Auth.authConnector
 }
 
 object AccountAccessControlWithHeaderCheck extends AccountAccessControlWithHeaderCheck {
   val accessControl: AccountAccessControl = AccountAccessControl
 }
 
-object AccountAccessControlSandbox extends AccountAccessControl {
-//    val authConnector: AuthConnector = new AuthConnector {
-//      override val serviceUrl: String = "NO SERVICE"
-//
-//      override def serviceConfidenceLevel: ConfidenceLevel = ConfidenceLevel.L0
-//
-//      override def http: CoreGet = new CoreGet with HttpGet {
-//        override def doGet(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = Future.failed(new IllegalArgumentException("Sandbox mode!"))
-//        override val hooks: Seq[HttpHook] = NoneRequired
-//        override def configuration: Option[Config] = None
-//      }
-//    }
-}
-
 object AccountAccessControlCheckAccessOff extends AccountAccessControlWithHeaderCheck {
   override val checkAccess=false
 
-  val accessControl: AccountAccessControl = AccountAccessControlSandbox
+  val accessControl: AccountAccessControl = AccountAccessControl
 }
