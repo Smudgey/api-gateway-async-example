@@ -16,7 +16,7 @@
 
 package controllers
 
-import java.util.UUID
+import java.util.UUID.randomUUID
 
 import akka.actor.{ActorRef, Props}
 import play.api.Play.current
@@ -25,29 +25,27 @@ import play.api.libs.json.JsValue
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import reactivemongo.bson.BSONObjectID
-import uk.gov.hmrc.apigatewayexample.connectors.{AuthConnector, Authority}
 import uk.gov.hmrc.apigatewayexample.controllers.ExampleAsyncController
-import uk.gov.hmrc.apigatewayexample.controllers.action.{AccountAccessControl, AccountAccessControlCheckAccessOff, AccountAccessControlWithHeaderCheck}
+import uk.gov.hmrc.apigatewayexample.controllers.action.{AccountAccessControl, AccountAccessControlCheckAccessOff, AccountAccessControlWithHeaderCheck, Authority}
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.http.{CoreGet, HeaderCarrier, Upstream4xxResponse}
+import uk.gov.hmrc.http.{HeaderCarrier, Upstream4xxResponse}
 import uk.gov.hmrc.mongo.{DatabaseUpdate, Saved}
 import uk.gov.hmrc.msasync.repository.{AsyncRepository, TaskCachePersist}
 import uk.gov.hmrc.play.asyncmvc.async.Cache
 import uk.gov.hmrc.play.asyncmvc.model.TaskCache
-import uk.gov.hmrc.play.auth.microservice.connectors.ConfidenceLevel
+import uk.gov.hmrc.play.auth.microservice.connectors.ConfidenceLevel.L200
 
 import scala.concurrent.{ExecutionContext, Future}
 
-
-class TestAuthConnector(nino: Option[Nino]) extends AuthConnector {
-  override val serviceUrl: String = "someUrl"
-
-  override def serviceConfidenceLevel: ConfidenceLevel = ???
-
-  override def http: CoreGet = ???
-
-  override def grantAccess()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Authority] = Future(Authority(nino.get, ConfidenceLevel.L200, "authId"))
-}
+//class TestAuthConnector(nino: Option[Nino]) extends AuthConnector {
+//  override val serviceUrl: String = "someUrl"
+//
+//  override def serviceConfidenceLevel: ConfidenceLevel = ???
+//
+//  override def http: CoreGet = ???
+//
+//  override def grantAccess()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Authority] = Future(Authority(nino.get, L200, "authId"))
+//}
 
 class TestRepository extends AsyncRepository {
   override def save(task: TaskCache, expire:Long): Future[DatabaseUpdate[TaskCachePersist]] = Future.successful(DatabaseUpdate(null, Saved(TaskCachePersist(BSONObjectID.generate, task))))
@@ -57,8 +55,10 @@ class TestRepository extends AsyncRepository {
   override def removeById(id: String): Future[Unit] = Future.successful({})
 }
 
-class TestAccessCheck(testAuthConnector: TestAuthConnector) extends AccountAccessControl {
-  override val authConnector: AuthConnector = testAuthConnector
+//class TestAccessCheck(testAuthConnector: TestAuthConnector) extends AccountAccessControl {
+class TestAccessCheck(nino: Option[Nino]) extends AccountAccessControl {
+//  override val authConnector: AuthConnector = testAuthConnector
+  override def grantAccess()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Authority] = Future(Authority(nino.get, L200))
 }
 
 class TestAccountAccessControlWithAccept(testAccessCheck:AccountAccessControl) extends AccountAccessControlWithHeaderCheck {
@@ -68,7 +68,7 @@ class TestAccountAccessControlWithAccept(testAccessCheck:AccountAccessControl) e
 
 trait Setup {
   implicit val hc = HeaderCarrier()
-  val journeyId = Option(UUID.randomUUID().toString)
+  val journeyId = Option(randomUUID().toString)
 
   val nino = Nino("CS700100A")
   val acceptHeader = "Accept" -> "application/vnd.hmrc.1.0+json"
@@ -86,9 +86,9 @@ trait Setup {
   ).withHeaders("Accept" -> "application/vnd.hmrc.1.0+json")
 
 
-  val authConnector = new TestAuthConnector(Some(nino))
+//  val authConnector = new TestAuthConnector(Some(nino))
   val testRepository = new TestRepository
-  val testAccess = new TestAccessCheck(authConnector)
+  val testAccess = new TestAccessCheck(Some(nino))
   val testCompositeAction = new TestAccountAccessControlWithAccept(testAccess)
   val sandboxCompositeAction = AccountAccessControlCheckAccessOff
 }
@@ -153,11 +153,6 @@ trait Throttle extends Setup {
   val controller = new ControllerUnderTest {
     val testSessionId="TimeoutBlock"
     val testSessionIdIdentifier = s"${this.id}-${testSessionId}"
-//    override def getName = "actor_"+testSessionId
-//    override val accessControl: AccountAccessControlWithHeaderCheck = testCompositeAction
-//    override implicit val ec: ExecutionContext = ExecutionContext.global
-//    override def buildUniqueId() = testSessionId
-//    override def taskCache: Cache[TaskCache] = cache
     override def throttleLimit=0
     override lazy val asyncActor: ActorRef = ???
 
@@ -167,7 +162,6 @@ trait Throttle extends Setup {
     override def taskCache: Cache[TaskCache] = ???
     override def buildUniqueId() = testSessionId
     override def getClientTimeout = 80000
-//    override lazy val asyncActor: ActorRef = Akka.system.actorOf(Props(new AsyncMVCAsyncActor(taskCache, getClientTimeout)), name = getName)
     // TODO..
     override val repository: AsyncRepository = testRepository
   }
@@ -196,11 +190,13 @@ trait SetupConcurrencyDynamicBlocking extends Setup {
 
 trait AuthWithoutNino extends Setup {
 
-  override val authConnector =  new TestAuthConnector(None) {
+//  override val authConnector =  new TestAuthConnector(None) {
+//    override def grantAccess()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Authority] = Future.failed(new Upstream4xxResponse("Error", 401, 401))
+//  }
+
+  override val testAccess = new TestAccessCheck(None){
     override def grantAccess()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Authority] = Future.failed(new Upstream4xxResponse("Error", 401, 401))
   }
-
-  override val testAccess = new TestAccessCheck(authConnector)
   override val testCompositeAction = new TestAccountAccessControlWithAccept(testAccess)
 
   val controller = new ExampleAsyncController {

@@ -57,13 +57,13 @@ object MicroserviceLoggingFilter extends LoggingFilter  with MicroserviceFilterS
   override def controllerNeedsLogging(controllerName: String) = ControllerConfiguration.paramsForController(controllerName).needsLogging
 }
 
-object MicroserviceAuthFilter extends AuthorisationFilter with MicroserviceFilterSupport {
-
-  override lazy val authParamsConfig = AuthParamsControllerConfiguration
-  override lazy val authConnector = MicroserviceAuthConnector
-
-  override def controllerNeedsAuth(controllerName: String): Boolean = ControllerConfiguration.paramsForController(controllerName).needsAuth
-}
+//object MicroserviceAuthFilter extends AuthorisationFilter with MicroserviceFilterSupport {
+//
+//  override lazy val authParamsConfig = AuthParamsControllerConfiguration
+//  override lazy val authConnector = MicroserviceAuthConnector
+//
+//  override def controllerNeedsAuth(controllerName: String): Boolean = ControllerConfiguration.paramsForController(controllerName).needsAuth
+//}
 
 object MicroserviceGlobal extends DefaultMicroserviceGlobal with RunMode with ServiceLocatorConfig with ServiceLocatorRegistration {
   override val auditConnector = MicroserviceAuditConnector
@@ -74,7 +74,8 @@ object MicroserviceGlobal extends DefaultMicroserviceGlobal with RunMode with Se
 
   override val microserviceAuditFilter = MicroserviceAuditFilter
 
-  override val authFilter = Some(MicroserviceAuthFilter)
+  //override val authFilter = Some(MicroserviceAuthFilter)
+  override val authFilter = None//
 
   override val slConnector: ServiceLocatorConnector = ServiceLocatorConnector(WSHttp)
 

@@ -18,6 +18,7 @@ private object AppDependencies {
   import play.core.PlayVersion
 
   private val microserviceBootstrapVersion = "6.11.0"
+  private val authClientVersion = "2.4.0"
   private val domainVersion = "5.0.0"
   private val playHmrcApiVersion = "2.0.0"
   private val hmrcTestVersion = "3.0.0"
@@ -26,10 +27,12 @@ private object AppDependencies {
   private val wireMockVersion = "2.2.2"
   private val cucumberVersion = "1.2.5"
   private val microserviceAsync = "2.0.0"
+  private val mockitoVersion = "2.11.0"
 
   val compile = Seq(
     ws,
     "uk.gov.hmrc" %% "microservice-bootstrap" % microserviceBootstrapVersion,
+    "uk.gov.hmrc" %% "auth-client" % authClientVersion,
     "uk.gov.hmrc" %% "microservice-async" % microserviceAsync,
     "uk.gov.hmrc" %% "domain" % domainVersion,
     "uk.gov.hmrc" %% "play-hmrc-api" % playHmrcApiVersion
@@ -46,6 +49,7 @@ private object AppDependencies {
         "uk.gov.hmrc" %% "hmrctest" % hmrcTestVersion % "test,it",
         "org.scalatest" %% "scalatest" % scalaTestVersion % "test,it",
         "org.pegdown" % "pegdown" % pegdownVersion % "test,it",
+        "org.mockito" % "mockito-core" % mockitoVersion % scope,
         "com.typesafe.play" %% "play-test" % PlayVersion.current % "test,it"
       )
     }.test
