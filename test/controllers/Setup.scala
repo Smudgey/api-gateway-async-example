@@ -33,7 +33,7 @@ import uk.gov.hmrc.mongo.{DatabaseUpdate, Saved}
 import uk.gov.hmrc.msasync.repository.{AsyncRepository, TaskCachePersist}
 import uk.gov.hmrc.play.asyncmvc.async.Cache
 import uk.gov.hmrc.play.asyncmvc.model.TaskCache
-import uk.gov.hmrc.play.auth.microservice.connectors.ConfidenceLevel.L200
+import uk.gov.hmrc.auth.core.ConfidenceLevel.L200
 
 import scala.concurrent.{ExecutionContext, Future}
 

@@ -27,7 +27,7 @@ private object AppDependencies {
   private val wireMockVersion = "2.2.2"
   private val cucumberVersion = "1.2.5"
   private val microserviceAsync = "2.0.0"
-  private val mockitoVersion = "2.11.0"
+  private val scalaMockVersion = "4.0.0"
 
   val compile = Seq(
     ws,
@@ -49,8 +49,8 @@ private object AppDependencies {
         "uk.gov.hmrc" %% "hmrctest" % hmrcTestVersion % "test,it",
         "org.scalatest" %% "scalatest" % scalaTestVersion % "test,it",
         "org.pegdown" % "pegdown" % pegdownVersion % "test,it",
-        "org.mockito" % "mockito-core" % mockitoVersion % scope,
-        "com.typesafe.play" %% "play-test" % PlayVersion.current % "test,it"
+        "com.typesafe.play" %% "play-test" % PlayVersion.current % "test,it",
+        "org.scalamock" %% "scalamock" % scalaMockVersion % scope
       )
     }.test
   }

@@ -17,6 +17,8 @@
 package uk.gov.hmrc.apigatewayexample.controllers.action
 
 import play.api.Logger
+import play.api.Play.configuration
+import play.api.Play.current
 import play.api.libs.json.Json.toJson
 import play.api.mvc._
 import uk.gov.hmrc.api.controllers.{ErrorAcceptHeaderInvalid, ErrorUnauthorized, ErrorUnauthorizedLowCL, HeaderValidator}
@@ -24,12 +26,12 @@ import uk.gov.hmrc.apigatewayexample.config.MicroserviceAuthConnector
 import uk.gov.hmrc.apigatewayexample.controllers.{ErrorUnauthorizedNoNino, ForbiddenAccess}
 import uk.gov.hmrc.auth.core.retrieve.Retrievals._
 import uk.gov.hmrc.auth.core.retrieve.~
-import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
+import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions, ConfidenceLevel}
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http.{HttpException, Request => _, _}
 import uk.gov.hmrc.play.HeaderCarrierConverter.fromHeadersAndSession
-import uk.gov.hmrc.play.auth.microservice.connectors.ConfidenceLevel
-import uk.gov.hmrc.play.auth.microservice.connectors.ConfidenceLevel.fromInt
+import uk.gov.hmrc.auth.core.ConfidenceLevel.fromInt
+import uk.gov.hmrc.play.config.ServicesConfig
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -47,6 +49,8 @@ trait AccountAccessControl extends ActionBuilder[AuthenticatedRequest] with Resu
   def authConnector(): AuthConnector = MicroserviceAuthConnector
 
   val ninoNotFoundOnAccount = new NinoNotFoundOnAccount("The user must have a National Insurance Number")
+
+  def serviceConfidenceLevel: ConfidenceLevel = ???
 
   def invokeBlock[A](request: Request[A], block: AuthenticatedRequest[A] => Future[Result]) = {
     implicit val hc = fromHeadersAndSession(request.headers, None)
@@ -77,7 +81,11 @@ trait AccountAccessControl extends ActionBuilder[AuthenticatedRequest] with Resu
       .retrieve(nino and confidenceLevel) {
         case Some(foundNino) ~ foundConfidenceLevel ⇒ {
           if (foundNino.isEmpty) throw ninoNotFoundOnAccount
-          Future(Authority(Nino(foundNino), fromInt(foundConfidenceLevel.level)))
+          else if (serviceConfidenceLevel.level > foundConfidenceLevel.level)
+            throw new ForbiddenException("The user does not have sufficient permissions to access this service")
+          else Future(Authority(
+            Nino(foundNino),
+            fromInt(foundConfidenceLevel.level).getOrElse(throw new RuntimeException(s"unknown confidence level found $foundConfidenceLevel"))))
         }
         case None ~ _ ⇒ {
           throw ninoNotFoundOnAccount
@@ -103,7 +111,13 @@ trait AccountAccessControlWithHeaderCheck extends HeaderValidator {
   }
 }
 
-object AccountAccessControl extends AccountAccessControl {
+object AccountAccessControl extends AccountAccessControl with ServicesConfig{
+  private lazy val configureConfidenceLevel: Int = configuration.getInt("controllers.confidenceLevel").getOrElse(
+    throw new RuntimeException("The service has not been configured with a confidence level"))
+  private lazy val confidenceLevel = ConfidenceLevel.fromInt(configureConfidenceLevel).getOrElse(
+    throw new RuntimeException(s"unknown confidence level found: $configureConfidenceLevel"))
+
+  override def serviceConfidenceLevel: ConfidenceLevel = confidenceLevel
 }
 
 object AccountAccessControlWithHeaderCheck extends AccountAccessControlWithHeaderCheck {
