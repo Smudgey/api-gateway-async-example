@@ -65,7 +65,7 @@ object MicroserviceGlobal extends DefaultMicroserviceGlobal with RunMode with Se
 
   override val microserviceAuditFilter = MicroserviceAuditFilter
 
-  override val authFilter = None//
+  override val authFilter = None
 
   override val slConnector: ServiceLocatorConnector = ServiceLocatorConnector(WSHttp)
 
